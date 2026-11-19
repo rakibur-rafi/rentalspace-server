@@ -21,7 +21,6 @@ app.get("/health", (req, res) => {
 
 app.use('/equipments', equipmentRoutes);
 
-
 app.listen(PORT, () =>{
     console.log(`Server running on port ${PORT}`)
 });

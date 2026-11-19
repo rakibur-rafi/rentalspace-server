@@ -1,9 +1,10 @@
 import express from "express";
 import { equipmentCollection } from "../conifg/db.js";
+import { verifyToken } from "../middlewares/jwtAuth.js";
 
 const router = express.Router();
 
-router.post("/", async (req, res) => {
+router.post("/", verifyToken, async (req, res) => {
     const data= req.body
     const result= await equipmentCollection.insertOne(data)
     res.send(result)
