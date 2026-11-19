@@ -1,7 +1,8 @@
 import express from "express";
 import cors from "cors";
-import { MongoClient } from "mongodb";
 import 'dotenv/config';
+import { connectToMongoDB } from "./conifg/db.js";
+import equipmentRoutes from "./routes/equipmentRoutes.js";
 
 const app = express();
 const PORT= process.env.PORT || 5000;
@@ -9,9 +10,16 @@ const PORT= process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
-app.get('/', (req, res) => {
-    res.send('Rental Space Server is running');
+await connectToMongoDB()
+
+app.get("/", (req, res) => {
+    res.send("Rental Space Server");
+})
+app.get("/health", (req, res) => {
+    res.send("Healthy");
 });
+
+app.use('/equipments', equipmentRoutes);
 
 
 app.listen(PORT, () =>{
