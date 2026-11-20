@@ -12,6 +12,7 @@ export const verifyToken= async (req, res, next) => {
     const JWKS= createRemoteJWKSet(new URL(process.env.JWKS_URL))
     try{
         const {payload}= await jwtVerify(token, JWKS)
+        req.user = payload;
         next()
     }
     catch{
