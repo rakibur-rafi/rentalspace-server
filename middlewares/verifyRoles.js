@@ -1,4 +1,4 @@
-const requireRole = (allowedRoles) => {
+const verifyRole = (allowedRoles) => {
     return (req, res, next) => {
         if (!req.user) {
             return res.status(401).send({
@@ -16,6 +16,6 @@ const requireRole = (allowedRoles) => {
     };
 };
 
-export const requireCustomer = requireRole(["customer"]);
-export const requireAdmin = requireRole(["admin"]);
-export const requireOwner = requireRole(["owner"]);
+export const requireCustomer = verifyRole(["customer"]);
+export const requireAdmin = verifyRole(["admin"]);
+export const requireOwner = verifyRole(["owner"]);

@@ -3,10 +3,11 @@ import { ObjectId } from "mongodb"
 import { equipmentCollection, rentCollection } from "../conifg/db.js"
 import { verifyToken } from "../middlewares/jwtAuth.js"
 import { stripe } from "../conifg/stripe.js"
+import { requireCustomer } from "../middlewares/verifyRoles.js"
 
 const router = express.Router()
 
-router.post("/create-checkout-session", verifyToken, async (req, res) => {
+router.post("/create-checkout-session", verifyToken, requireCustomer, async (req, res) => {
   let rentId
   try {
     const userEmail = req.user?.email
@@ -38,6 +39,11 @@ router.post("/create-checkout-session", verifyToken, async (req, res) => {
     if (!equipment) {
       return res.status(404).json({ error: "Equipment not found" })
     }
+    const ownerEmail = equipment.owner?.email
+   
+    if (!ownerEmail) {
+      return res.status(400).json({ error: "Equipment owner details are missing" })
+    }
 
     const availableQuantity = Number(equipment.availableQuantity)
     const unitPrice = Number(equipment.rentalPrice)
@@ -55,6 +61,7 @@ router.post("/create-checkout-session", verifyToken, async (req, res) => {
     const rent = {
       equipmentID: equipment._id,
       userEmail,
+      ownerEmail,
       quantity: requestedQuantity,
       phone: phone.trim(),
       address: address.trim(),
@@ -88,6 +95,7 @@ router.post("/create-checkout-session", verifyToken, async (req, res) => {
         rentId: rentId.toString(),
         equipmentId: equipment._id.toString(),
         userEmail,
+        ownerEmail,
         quantity: String(requestedQuantity),
       },
       success_url: `${process.env.CLIENT_URL}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
