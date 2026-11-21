@@ -2,6 +2,7 @@ import express from "express";
 import { usersCollection } from "../conifg/db.js";
 import { verifyToken } from "../middlewares/jwtAuth.js";
 import { requireAdmin } from "../middlewares/verifyRoles.js";
+import { ObjectId } from "mongodb";
 
 const router = express.Router();
 
@@ -12,6 +13,35 @@ router.get("/", verifyToken, requireAdmin, async (req, res) => {
     res.send(users);
   } catch (error) {
     res.status(500).json({ message: error.message });
+  }
+});
+
+router.patch("/:id", verifyToken, requireAdmin, async (req, res) => {
+  try {
+    const id= req.params.id
+    const { role } = req.body;
+
+    const result = await usersCollection.updateOne(
+      { _id: new ObjectId(id) },
+      { 
+        $set: {
+           role: role
+        } 
+      }
+    );
+
+    if (result.matchedCount === 0) {
+      return res.status(404).send({
+        message: "User not found"
+      });
+    }
+
+    res.send(result);
+
+    }catch (error) {
+    res.status(500).send({
+      message: error.message
+    });
   }
 });
 
