@@ -16,7 +16,7 @@ router.post("/create-checkout-session", verifyToken, requireCustomer, async (req
       return res.status(401).json({ error: "Please sign in to rent equipment" })
     }
 
-    const { equipmentId, quantity, phone, address } = req.body
+    const { equipmentId, quantity, phone, address, rentStartDate, rentEndDate } = req.body
     const requestedQuantity = Number(quantity)
 
     if (!ObjectId.isValid(equipmentId)) {
@@ -70,6 +70,8 @@ router.post("/create-checkout-session", verifyToken, requireCustomer, async (req
       totalPrice: totalPriceUsdCents / (100* 0.0081),
       checkoutDate: new Date(),
       status: "pending",
+      rentStartDate, rentStartDate,
+      rentEndDate: rentEndDate,
       createdAt: new Date(),
     }
 
