@@ -1,10 +1,24 @@
 import express from "express";
 import { ObjectId } from "mongodb";
 import { verifyToken } from "../middlewares/jwtAuth.js";
-import { requireCustomer, requireOwner } from "../middlewares/verifyRoles.js";
+import { requireAdmin, requireCustomer, requireOwner } from "../middlewares/verifyRoles.js";
 import { rentCollection } from "../conifg/db.js";
 
 const router = express.Router();
+
+router.get("/all-rentals", verifyToken, requireAdmin, async (req, res) => {
+  try {
+    const result = await rentCollection
+      .find()
+      .toArray();
+
+    res.send(result);
+  } catch (error) {
+    res.status(500).send({
+      message: "Failed to fetch customer rentals",
+    });
+  }
+});
 
 router.get("/customer-rentals", verifyToken, requireCustomer, async (req, res) => {
   const email = req.user.email;

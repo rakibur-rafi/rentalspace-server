@@ -2,7 +2,7 @@ import express from "express";
 import { ObjectId } from "mongodb";
 import { equipmentCollection } from "../conifg/db.js";
 import { verifyToken } from "../middlewares/jwtAuth.js";
-import { requireOwner } from "../middlewares/verifyRoles.js";
+import { requireAdmin, requireOwner } from "../middlewares/verifyRoles.js";
 
 const router = express.Router();
 
@@ -84,5 +84,46 @@ router.delete("/my-equipments/:id", verifyToken, requireOwner, async (req, res) 
     const result= await equipmentCollection.deleteOne({_id: new ObjectId(id)})
     res.send(result)
 });
+
+router.patch("/:id", verifyToken, requireAdmin, async(req,res)=>{
+  const id = req.params.id;
+  const { status } = req.body;
+  
+    if (!ObjectId.isValid(id)) {
+      return res.status(400).send({ message: "Invalid rental ID" });
+    }
+  
+    if (typeof status !== "string" || !status.trim()) {
+      return res.status(400).send({ message: "A valid status is required" });
+    }
+  
+    try {
+      const result = await equipmentCollection.updateOne(
+        {
+          _id: new ObjectId(id)
+        },
+        {
+          $set: {
+            status: status.trim(),
+          },
+        }
+      );
+  
+      if (result.matchedCount === 0) {
+        return res.status(404).send({
+          message: "Rental not found or unauthorized",
+        });
+      }
+  
+      res.send({
+        message: "Rental status updated successfully",
+        result,
+      });
+    } catch (error) {
+      res.status(500).send({
+        message: "Failed to update rental status",
+      });
+    }
+})
 
 export default router

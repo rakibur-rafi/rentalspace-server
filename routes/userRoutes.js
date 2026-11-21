@@ -8,8 +8,7 @@ const router = express.Router();
 
 router.get("/", verifyToken, requireAdmin, async (req, res) => {
   try {
-    const query = {};
-    const users = await usersCollection.find(query).toArray();
+    const users = await usersCollection.find().toArray();
     res.send(users);
   } catch (error) {
     res.status(500).json({ message: error.message });
