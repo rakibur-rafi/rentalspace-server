@@ -44,6 +44,28 @@ router.get("/", async (req, res) => {
   }
 });
 
+router.get("/:id", async (req, res) => {
+  try {
+    const id = req.params.id
+
+    if (!ObjectId.isValid(id)) {
+      return res.status(400).send({ message: "Invalid equipment ID" })
+    }
+
+    const result = await equipmentCollection.findOne({
+      _id: new ObjectId(id)
+    })
+
+    if (!result) {
+      return res.status(404).send({ message: "Equipment not found" })
+    }
+
+    res.send(result)
+  } catch (error) {
+    res.status(500).send({ message: "Internal server error" })
+  }
+})
+
 router.get("/my-equipments/:email", verifyToken, requireOwner, async (req, res) => {
     const email= req.params.email
     const result= await equipmentCollection.find({"owner.email": email}).toArray()

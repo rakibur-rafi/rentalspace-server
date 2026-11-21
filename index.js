@@ -4,6 +4,7 @@ import 'dotenv/config';
 import { connectToMongoDB } from "./conifg/db.js";
 import equipmentRoutes from "./routes/equipmentRoutes.js";
 import userRoutes from "./routes/userRoutes.js"
+import checkoutRoutes from "./routes/checkoutRoutes.js"
 
 const app = express();
 const PORT= process.env.PORT || 5000;
@@ -22,6 +23,7 @@ app.get("/health", (req, res) => {
 
 app.use('/equipments', equipmentRoutes);
 app.use('/users', userRoutes);
+app.use('/checkout', checkoutRoutes);
 
 
 app.listen(PORT, () =>{

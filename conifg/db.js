@@ -5,6 +5,7 @@ const db = client.db("rentalspace-db");
 
 export const usersCollection = db.collection("user");
 export const equipmentCollection = db.collection("equipments");
+export const rentCollection = db.collection("rent");
 
 export async function connectToMongoDB() {
   try {
