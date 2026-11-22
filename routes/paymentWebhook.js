@@ -93,7 +93,6 @@ router.post(
               {
                 $set: {
                   paymentStatus: "paid",
-                  status: "confirmed",
                   paidAt: new Date()
                 }
               },
