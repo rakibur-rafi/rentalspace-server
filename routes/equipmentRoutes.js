@@ -12,6 +12,47 @@ router.post("/", verifyToken, requireOwner,  async (req, res) => {
     res.send(result)
 });
 
+router.patch("/:id", verifyToken, requireAdmin, async (req, res) => {
+  const id = req.params.id;
+  const { status } = req.body;
+
+  const allowedStatus = ["active", "pending", "rejected", "inactive"];
+
+  try {
+    if (!ObjectId.isValid(id)) {
+      return res.status(400).send({ message: "Invalid equipment ID" });
+    }
+
+    if (!allowedStatus.includes(status)) {
+      return res.status(400).send({ message: "Invalid equipment status" });
+    }
+
+    const result = await equipmentCollection.updateOne(
+      {
+        _id: new ObjectId(id)      },
+      {
+        $set: { status }
+      }
+    );
+
+    if (result.matchedCount === 0) {
+      return res.status(404).send({
+        message: "Equipment not found or unauthorized"
+      });
+    }
+
+    res.send({
+      message: "Equipment status updated successfully",
+      modifiedCount: result.modifiedCount
+    });
+
+  } catch (error) {
+    res.status(500).send({
+      message: "Failed to update equipment status"
+    });
+  }
+});
+
 router.get("/", async (req, res) => {
   try {
     const query = {};
