@@ -70,9 +70,10 @@ router.post("/create-checkout-session", verifyToken, requireCustomer, async (req
       totalPrice: totalPriceUsdCents / (100* 0.0081),
       checkoutDate: new Date(),
       status: "pending",
-      rentStartDate, rentStartDate,
+      rentStartDate: rentStartDate,
       rentEndDate: rentEndDate,
       createdAt: new Date(),
+      paymentStatus: "pending"
     }
 
     const rentResult = await rentCollection.insertOne(rent)

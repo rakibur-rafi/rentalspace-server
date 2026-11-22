@@ -8,11 +8,17 @@ import checkoutRoutes from "./routes/checkoutRoutes.js"
 import favouriteRoutes from "./routes/favouriteRoutes.js"
 import rentalRoutes from "./routes/rentalRoutes.js"
 import analyticsRoutes from "./routes/analyticsRoutes.js"
+import paymentWebhook from "./routes/paymentWebhook.js";
+
 
 const app = express();
 const PORT= process.env.PORT || 5000;
 
 app.use(cors());
+
+app.use("/api/webhooks", paymentWebhook);
+
+
 app.use(express.json());
 
 await connectToMongoDB()
