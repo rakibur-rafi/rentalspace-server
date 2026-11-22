@@ -8,6 +8,7 @@ export const equipmentCollection = db.collection("equipments");
 export const rentCollection = db.collection("rent");
 export const favouriteCollection = db.collection("favourites")
 export const categoryCollection= db.collection("categories")
+export const reviewCollection= db.collection("reviews")
 
 export async function connectToMongoDB() {
   try {

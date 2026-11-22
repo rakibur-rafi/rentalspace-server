@@ -183,7 +183,7 @@ router.get("/owner", verifyToken, requireOwner, async (req, res) => {
           $match: {
             ownerEmail: email,
             status: {
-              $nin: ["rejected", "cancelled"]
+              $nin: ["pending", "on delivery"]
             }
           }
         },

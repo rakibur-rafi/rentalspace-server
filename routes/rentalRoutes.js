@@ -20,6 +20,28 @@ router.get("/all-rentals", verifyToken, requireAdmin, async (req, res) => {
   }
 });
 
+router.delete("/all-rentals/:id", verifyToken, requireAdmin, async (req, res) => {
+   try {
+      const id = req.params.id
+      const existingRent = await rentCollection.findOne({
+        _id: new ObjectId(id)
+      });
+  
+      if (!existingRent) {
+        return res.status(409).send({
+          message: "Not a Valid ID",
+        });
+      }
+  
+      const result = await rentCollection.deleteOne({_id: new ObjectId(id)});
+      res.status(201).send(result);
+    } catch (error) {
+      res.status(500).send({
+        message: "Failed to Remove",
+      });
+    }
+});
+
 router.get("/customer-rentals", verifyToken, requireCustomer, async (req, res) => {
   const email = req.user.email;
   try {

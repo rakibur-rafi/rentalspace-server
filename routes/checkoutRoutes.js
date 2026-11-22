@@ -56,7 +56,7 @@ router.post("/create-checkout-session", verifyToken, requireCustomer, async (req
       return res.status(400).json({ error: "Requested quantity is unavailable" })
     }
 
-    const totalPriceUsdCents = Math.round(unitPrice * 0.0081 * 100) * requestedQuantity
+    const totalPriceUsdCents = Math.round(unitPrice * 0.007731 * 100) * requestedQuantity
 
     const rent = {
       equipmentID: equipment._id,
@@ -68,7 +68,7 @@ router.post("/create-checkout-session", verifyToken, requireCustomer, async (req
       additionalNotes: additionalNotes.trim(),
       rentalType: equipment.rentalType,
       unitPrice,
-      totalPrice: totalPriceUsdCents / (100* 0.0081),
+      totalPrice: (totalPriceUsdCents / 100)/ 0.007731,
       checkoutDate: new Date(),
       status: "pending",
       rentStartDate: rentStartDate,
@@ -87,7 +87,7 @@ router.post("/create-checkout-session", verifyToken, requireCustomer, async (req
           quantity: requestedQuantity,
           price_data: {
             currency: "usd",
-            unit_amount: Math.round(unitPrice * 0.0081 * 100),
+            unit_amount: Math.round(unitPrice * 0.007731 * 100),
             product_data: {
               name: equipment.name,
               description: `Rental price per ${equipment.rentalType}`,

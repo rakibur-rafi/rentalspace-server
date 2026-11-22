@@ -6,6 +6,14 @@ import { ObjectId } from "mongodb";
 
 const router = express.Router();
 
+router.get("/verified-owners", async (req, res) => {
+  try {
+    const users = await usersCollection.find({role: "owner"}).toArray();
+    res.send(users);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
 
 router.get("/", verifyToken, requireAdmin, async (req, res) => {
   try {

@@ -6,50 +6,16 @@ import { requireAdmin, requireOwner } from "../middlewares/verifyRoles.js";
 
 const router = express.Router();
 
-router.post("/", verifyToken, requireOwner,  async (req, res) => {
-    const data= req.body
-    const result= await equipmentCollection.insertOne(data)
-    res.send(result)
-});
-
-router.patch("/:id", verifyToken, requireAdmin, async (req, res) => {
-  const id = req.params.id;
-  const { status } = req.body;
-
-  const allowedStatus = ["active", "pending", "rejected", "inactive"];
-
+router.get("/featured", async (req, res) => {
   try {
-    if (!ObjectId.isValid(id)) {
-      return res.status(400).send({ message: "Invalid equipment ID" });
-    }
+    const equipments = await equipmentCollection
+      .find()
+      .limit(6)
+      .toArray();
 
-    if (!allowedStatus.includes(status)) {
-      return res.status(400).send({ message: "Invalid equipment status" });
-    }
-
-    const result = await equipmentCollection.updateOne(
-      {
-        _id: new ObjectId(id)      },
-      {
-        $set: { status }
-      }
-    );
-
-    if (result.matchedCount === 0) {
-      return res.status(404).send({
-        message: "Equipment not found or unauthorized"
-      });
-    }
-
-    res.send({
-      message: "Equipment status updated successfully",
-      modifiedCount: result.modifiedCount
-    });
-
+    res.send(equipments);
   } catch (error) {
-    res.status(500).send({
-      message: "Failed to update equipment status"
-    });
+    res.status(500).json({ message: error.message });
   }
 });
 
@@ -125,6 +91,13 @@ router.get("/", async (req, res) => {
   }
 });
 
+router.post("/", verifyToken, requireOwner,  async (req, res) => {
+    const data= req.body
+    const result= await equipmentCollection.insertOne(data)
+    res.send(result)
+});
+
+
 router.get("/:id", verifyToken, async (req, res) => {
   try {
     const id = req.params.id
@@ -160,7 +133,14 @@ router.patch("/my-equipments/:id", verifyToken, requireOwner, async (req, res) =
     res.send(result)
 });
 
+
+
 router.delete("/my-equipments/:id", verifyToken, requireOwner, async (req, res) => {
+    const id= req.params.id
+    const result= await equipmentCollection.deleteOne({_id: new ObjectId(id)})
+    res.send(result)
+});
+router.delete("/:id", verifyToken, requireAdmin, async (req, res) => {
     const id= req.params.id
     const result= await equipmentCollection.deleteOne({_id: new ObjectId(id)})
     res.send(result)
@@ -206,5 +186,8 @@ router.patch("/:id", verifyToken, requireAdmin, async(req,res)=>{
       });
     }
 })
+
+
+
 
 export default router

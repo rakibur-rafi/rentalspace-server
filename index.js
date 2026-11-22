@@ -10,6 +10,7 @@ import rentalRoutes from "./routes/rentalRoutes.js"
 import analyticsRoutes from "./routes/analyticsRoutes.js"
 import paymentWebhook from "./routes/paymentWebhook.js";
 import categoryRoutes from "./routes/categoryRoutes.js";
+import reviewRoutes from "./routes/reviewRoutes.js"
 
 const app = express();
 const PORT= process.env.PORT || 5000;
@@ -37,6 +38,7 @@ app.use('/favourites', favouriteRoutes);
 app.use('/rentals', rentalRoutes)
 app.use('/analytics', analyticsRoutes)
 app.use('/categories', categoryRoutes)
+app.use('/reviews', reviewRoutes)
 
 app.listen(PORT, () =>{
     console.log(`Server running on port ${PORT}`)
