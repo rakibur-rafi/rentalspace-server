@@ -15,7 +15,7 @@ router.get("/verified-owners", async (req, res) => {
   }
 });
 
-router.get("/", verifyToken, requireAdmin, async (req, res) => {
+router.get("/all-users", verifyToken, requireAdmin, async (req, res) => {
   try {
     const users = await usersCollection.find().toArray();
     res.send(users);
@@ -24,7 +24,7 @@ router.get("/", verifyToken, requireAdmin, async (req, res) => {
   }
 });
 
-router.patch("/:id", verifyToken, requireAdmin, async (req, res) => {
+router.patch("/all-users/:id", verifyToken, requireAdmin, async (req, res) => {
   try {
     const id= req.params.id
     const { role } = req.body;
