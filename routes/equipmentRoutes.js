@@ -9,7 +9,7 @@ const router = express.Router();
 router.get("/featured", async (req, res) => {
   try {
     const equipments = await equipmentCollection
-      .find()
+      .find({ availableQuantity: { $gt: 0 } })
       .limit(6)
       .toArray();
 
