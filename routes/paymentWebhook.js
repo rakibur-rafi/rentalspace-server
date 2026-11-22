@@ -1,7 +1,8 @@
 
 import express from "express";
 import { ObjectId } from "mongodb";
-import { rentCollection } from "../conifg/db.js";
+import { client } from "../conifg/db.js";
+import { equipmentCollection, rentCollection } from "../conifg/db.js";
 import { stripe } from "../conifg/stripe.js";
 
 const router = express.Router();
@@ -26,34 +27,86 @@ router.post(
     }
 
     try {
-      if (event.type === "checkout.session.completed") {
-        const session = event.data.object;
+      const session = event.data.object;
 
-        if (session.payment_status === "paid") {
-          const rentId = session.metadata?.rentId;
+      if (
+        event.type === "checkout.session.completed" &&
+        session.payment_status === "paid"
+      ) {
+        const rentId = session.metadata?.rentId;
 
-          if (!ObjectId.isValid(rentId)) {
-            return res.status(400).send("Invalid rent ID");
-          }
+        if (!ObjectId.isValid(rentId)) {
+          return res.status(400).send("Invalid rent ID");
+        }
 
-          await rentCollection.updateOne(
-            {
-              _id: new ObjectId(rentId),
-              stripeSessionId: session.id,
-              paymentStatus: "pending"
-            },
-            {
-              $set: {
-                paymentStatus: "paid",
-                paidAt: new Date()
-              }
+        const mongoSession = client.startSession();
+
+        try {
+          await mongoSession.withTransaction(async () => {
+            const rent = await rentCollection.findOne(
+              {
+                _id: new ObjectId(rentId),
+                stripeSessionId: session.id,
+                paymentStatus: "pending"
+              },
+              { session: mongoSession }
+            );
+
+            if (!rent) {
+              return;
             }
-          );
+
+            const equipmentUpdate = await equipmentCollection.updateOne(
+              {
+                _id: rent.equipmentID,
+                availableQuantity: { $gte: rent.quantity }
+              },
+              {
+                $inc: {
+                  availableQuantity: -rent.quantity
+                }
+              },
+              { session: mongoSession }
+            );
+
+            if (equipmentUpdate.modifiedCount === 0) {
+              await rentCollection.updateOne(
+                { _id: rent._id, paymentStatus: "pending" },
+                {
+                  $set: {
+                    paymentStatus: "paid",
+                    status: "inventory_unavailable",
+                    paidAt: new Date()
+                  }
+                },
+                { session: mongoSession }
+              );
+
+              return;
+            }
+
+            await rentCollection.updateOne(
+              {
+                _id: rent._id,
+                paymentStatus: "pending"
+              },
+              {
+                $set: {
+                  paymentStatus: "paid",
+                  status: "confirmed",
+                  paidAt: new Date()
+                }
+              },
+              { session: mongoSession }
+            );
+          });
+
+        } finally {
+          await mongoSession.endSession();
         }
       }
 
       if (event.type === "checkout.session.expired") {
-        const session = event.data.object;
         const rentId = session.metadata?.rentId;
 
         if (ObjectId.isValid(rentId)) {
@@ -65,16 +118,15 @@ router.post(
             },
             {
               $set: {
-                paymentStatus: "expired"
+                paymentStatus: "expired",
+                status: "cancelled"
               }
             }
           );
         }
       }
 
-      return res.status(200).json({
-        received: true
-      });
+      return res.status(200).json({ received: true });
 
     } catch (error) {
       console.error("Webhook processing failed:", error);

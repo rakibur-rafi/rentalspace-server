@@ -62,7 +62,10 @@ router.get("/", async (req, res) => {
     }
 
     if (req.query.location) {
-      query.location = req.query.location;
+      query.location = {
+        $regex: String(req.query.location).replace(/[.*+?^$()|[\]{}\\]/g, "\\$&"),
+        $options: "i"
+      };
     }
 
     if (req.query.rentalType) {
@@ -77,7 +80,44 @@ router.get("/", async (req, res) => {
       query.brand = req.query.brand;
     }
 
-    const equipments = await equipmentCollection.find(query).toArray();
+
+    const search = String(req.query.search || "").trim();
+    const searchBy = req.query.searchBy === "location" ? "location" : "name";
+
+    if (search) {
+      query[searchBy] = {
+        $regex: search.replace(/[.*+?^$()|[\]{}\\]/g, "\\$&"),
+        $options: "i"
+      };
+    }
+
+    const minPrice = Number(req.query.minPrice);
+    const maxPrice = Number(req.query.maxPrice);
+    if (req.query.minPrice !== undefined || req.query.maxPrice !== undefined) {
+      query.rentalPrice = {};
+      if (req.query.minPrice !== undefined && Number.isFinite(minPrice)) {
+        query.rentalPrice.$gte = minPrice;
+      }
+      if (req.query.maxPrice !== undefined && Number.isFinite(maxPrice)) {
+        query.rentalPrice.$lte = maxPrice;
+      }
+    }
+
+    if (req.query.availability === "available") {
+      query.availableQuantity = { $gt: 0 };
+    }
+
+    const sort = {};
+
+    if (req.query.sort === "low-to-high") {
+      sort.rentalPrice = 1;
+    } else if (req.query.sort === "high-to-low") {
+      sort.rentalPrice = -1;
+    } else if (req.query.sort === "recently-added") {
+      sort._id = -1;
+    }
+
+    const equipments = await equipmentCollection.find(query).sort(sort).toArray();
 
     res.send(equipments);
   } catch (error) {
@@ -85,7 +125,7 @@ router.get("/", async (req, res) => {
   }
 });
 
-router.get("/:id", async (req, res) => {
+router.get("/:id", verifyToken, async (req, res) => {
   try {
     const id = req.params.id
 
